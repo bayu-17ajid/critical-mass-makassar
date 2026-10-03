@@ -1,6 +1,6 @@
 -- ==============================================================================
--- CRITICAL MASS MAKASSAR - PRODUCTION DATABASE SETUP (1-KLIK SIAP PAKAI)
--- Jalankan script ini di menu "SQL Editor" pada dashboard Supabase Anda.
+-- CRITICAL MASS MAKASSAR - PRODUCTION DATABASE SETUP (100% IDEMPOTENT & RE-RUNNABLE)
+-- Aman dijalankan berulang kali tanpa error "policy already exists"
 -- ==============================================================================
 
 -- 1. Enable UUID Extension
@@ -20,6 +20,13 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles enable row level security;
+drop policy if exists "Allow all profiles read" on public.profiles;
+drop policy if exists "Allow all profiles insert" on public.profiles;
+drop policy if exists "Allow all profiles update" on public.profiles;
+drop policy if exists "Public profiles are viewable by everyone" on public.profiles;
+drop policy if exists "Users can insert their own profile" on public.profiles;
+drop policy if exists "Users can update their own profile" on public.profiles;
+
 create policy "Allow all profiles read" on public.profiles for select using (true);
 create policy "Allow all profiles insert" on public.profiles for insert with check (true);
 create policy "Allow all profiles update" on public.profiles for update using (true);
@@ -38,6 +45,14 @@ create table if not exists public.events (
 );
 
 alter table public.events enable row level security;
+drop policy if exists "Allow all events read" on public.events;
+drop policy if exists "Allow all events insert" on public.events;
+drop policy if exists "Allow all events update" on public.events;
+drop policy if exists "Published or completed events are viewable by everyone" on public.events;
+drop policy if exists "Admins can insert events" on public.events;
+drop policy if exists "Admins can update events" on public.events;
+drop policy if exists "Admins can delete events" on public.events;
+
 create policy "Allow all events read" on public.events for select using (true);
 create policy "Allow all events insert" on public.events for insert with check (true);
 create policy "Allow all events update" on public.events for update using (true);
@@ -56,6 +71,12 @@ create table if not exists public.event_locations (
 );
 
 alter table public.event_locations enable row level security;
+drop policy if exists "Allow all event_locations read" on public.event_locations;
+drop policy if exists "Allow all event_locations insert" on public.event_locations;
+drop policy if exists "Allow all event_locations update" on public.event_locations;
+drop policy if exists "Allow all event_locations delete" on public.event_locations;
+drop policy if exists "Event locations are viewable by everyone" on public.event_locations;
+
 create policy "Allow all event_locations read" on public.event_locations for select using (true);
 create policy "Allow all event_locations insert" on public.event_locations for insert with check (true);
 create policy "Allow all event_locations update" on public.event_locations for update using (true);
@@ -73,6 +94,12 @@ create table if not exists public.event_rundowns (
 );
 
 alter table public.event_rundowns enable row level security;
+drop policy if exists "Allow all event_rundowns read" on public.event_rundowns;
+drop policy if exists "Allow all event_rundowns insert" on public.event_rundowns;
+drop policy if exists "Allow all event_rundowns update" on public.event_rundowns;
+drop policy if exists "Allow all event_rundowns delete" on public.event_rundowns;
+drop policy if exists "Event rundowns are viewable by everyone" on public.event_rundowns;
+
 create policy "Allow all event_rundowns read" on public.event_rundowns for select using (true);
 create policy "Allow all event_rundowns insert" on public.event_rundowns for insert with check (true);
 create policy "Allow all event_rundowns update" on public.event_rundowns for update using (true);
@@ -94,6 +121,12 @@ create table if not exists public.meeting_points (
 );
 
 alter table public.meeting_points enable row level security;
+drop policy if exists "Allow all meeting_points read" on public.meeting_points;
+drop policy if exists "Allow all meeting_points insert" on public.meeting_points;
+drop policy if exists "Allow all meeting_points update" on public.meeting_points;
+drop policy if exists "Allow all meeting_points delete" on public.meeting_points;
+drop policy if exists "Meeting points are viewable by everyone" on public.meeting_points;
+
 create policy "Allow all meeting_points read" on public.meeting_points for select using (true);
 create policy "Allow all meeting_points insert" on public.meeting_points for insert with check (true);
 create policy "Allow all meeting_points update" on public.meeting_points for update using (true);
@@ -109,6 +142,10 @@ create table if not exists public.meeting_point_members (
 );
 
 alter table public.meeting_point_members enable row level security;
+drop policy if exists "Allow all meeting_point_members read" on public.meeting_point_members;
+drop policy if exists "Allow all meeting_point_members insert" on public.meeting_point_members;
+drop policy if exists "Allow all meeting_point_members delete" on public.meeting_point_members;
+
 create policy "Allow all meeting_point_members read" on public.meeting_point_members for select using (true);
 create policy "Allow all meeting_point_members insert" on public.meeting_point_members for insert with check (true);
 create policy "Allow all meeting_point_members delete" on public.meeting_point_members for delete using (true);
@@ -126,6 +163,11 @@ create table if not exists public.event_attendees (
 );
 
 alter table public.event_attendees enable row level security;
+drop policy if exists "Allow all event_attendees read" on public.event_attendees;
+drop policy if exists "Allow all event_attendees insert" on public.event_attendees;
+drop policy if exists "Allow all event_attendees update" on public.event_attendees;
+drop policy if exists "Allow all event_attendees delete" on public.event_attendees;
+
 create policy "Allow all event_attendees read" on public.event_attendees for select using (true);
 create policy "Allow all event_attendees insert" on public.event_attendees for insert with check (true);
 create policy "Allow all event_attendees update" on public.event_attendees for update using (true);
@@ -149,12 +191,17 @@ create table if not exists public.live_locations (
   constraint live_location_unique unique (event_id, user_id)
 );
 
--- Index performa tinggi untuk pencarian lokasi
 create index if not exists idx_live_locations_event on public.live_locations(event_id);
 create index if not exists idx_live_locations_user on public.live_locations(user_id);
 create index if not exists idx_live_locations_recorded on public.live_locations(recorded_at);
 
 alter table public.live_locations enable row level security;
+drop policy if exists "Allow all live_locations read" on public.live_locations;
+drop policy if exists "Allow all live_locations insert" on public.live_locations;
+drop policy if exists "Allow all live_locations update" on public.live_locations;
+drop policy if exists "Allow all live_locations delete" on public.live_locations;
+drop policy if exists "Live locations are viewable by everyone" on public.live_locations;
+
 create policy "Allow all live_locations read" on public.live_locations for select using (true);
 create policy "Allow all live_locations insert" on public.live_locations for insert with check (true);
 create policy "Allow all live_locations update" on public.live_locations for update using (true);
