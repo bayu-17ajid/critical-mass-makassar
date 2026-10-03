@@ -246,11 +246,34 @@ export const eventService = {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('event_attendees')
-        .select('*, profile:profiles(*)')
-        .eq('event_id', eventId);
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
 
       if (!error && data) {
-        return data as unknown as EventAttendee[];
+        if (data.length === 0) return [];
+        const userIds = data.map((a: any) => a.user_id);
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', userIds);
+
+        const profMap = new Map((profs || []).map((p: any) => [p.id, p]));
+        return data.map((item: any) => ({
+          ...item,
+          profile: profMap.get(item.user_id) || {
+            id: item.user_id,
+            username: item.is_anonymous ? 'anonymous' : 'rider',
+            display_name: item.is_anonymous ? 'Rider' : 'Rider Makassar',
+            avatar_url: null,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          },
+        })) as EventAttendee[];
+      }
+
+      if (isSupabaseConfigured) {
+        return [];
       }
     }
     return getLocalState<EventAttendee[]>(STORAGE_KEYS.ATTENDEES, MOCK_ATTENDEES);
@@ -338,7 +361,7 @@ export const eventService = {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('meeting_points')
-        .select('*, creator_profile:profiles(*), members:meeting_point_members(user_id)')
+        .select('*, members:meeting_point_members(user_id)')
         .eq('event_id', eventId)
         .eq('status', 'ACTIVE')
         .order('created_at', { ascending: false });
@@ -354,6 +377,10 @@ export const eventService = {
           is_joined: currentUserId ? Boolean(item.members?.some((m) => m.user_id === currentUserId)) : false,
         })) as MeetingPoint[];
       }
+
+      if (isSupabaseConfigured) {
+        return [];
+      }
     }
 
     const tikums = getLocalState<MeetingPoint[]>(STORAGE_KEYS.TIKUMS, MOCK_TIKUMS);
@@ -366,7 +393,7 @@ export const eventService = {
       const tMembers = members.filter((m) => m.tikum_id === t.id);
       return {
         ...t,
-        member_count: (t.member_count || 0) + tMembers.length,
+        member_count: tMembers.length,
         is_joined: currentUserId ? members.some((m) => m.tikum_id === t.id && m.user_id === currentUserId) : false,
       };
     });
@@ -498,12 +525,16 @@ export const eventService = {
       const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from('live_locations')
-        .select('*, profile:profiles(*)')
+        .select('*')
         .eq('event_id', eventId)
         .gte('recorded_at', fiveMinsAgo);
 
       if (!error && data) {
         return data as unknown as LiveLocation[];
+      }
+
+      if (isSupabaseConfigured) {
+        return [];
       }
     }
 

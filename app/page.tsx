@@ -162,14 +162,14 @@ export default function HomePage() {
           <div className="grid grid-cols-3 gap-2.5 sm:gap-4 w-full max-w-2xl mt-6 sm:mt-8">
             <StatCard
               label="Riders Attending"
-              value={attendees.length > 0 ? attendees.length : 187}
+              value={attendees.length}
               variant="green"
               icon={<Users className="w-4 h-4 sm:w-5 sm:h-5" />}
               onClick={() => router.push('/event')}
             />
             <StatCard
               label="Tikum Peserta"
-              value={tikums.length > 0 ? tikums.length : 12}
+              value={tikums.length}
               variant="purple"
               icon={<MapPin className="w-4 h-4 sm:w-5 sm:h-5" />}
               onClick={() => router.push('/tikum')}

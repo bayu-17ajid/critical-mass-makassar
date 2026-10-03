@@ -379,52 +379,62 @@ export default function LiveMapPage() {
             </div>
 
             <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
-              {riders.map((r) => {
-                const displayName = r.is_anonymous ? 'Rider' : (r.display_name || 'Rider');
-                const isMe = user?.id === r.user_id;
+              {riders.length === 0 ? (
+                <div className="py-8 px-3 text-center rounded-xl bg-[#0f172a]/40 border border-dashed border-[#1e2d4d]">
+                  <Bike className="w-6 h-6 text-[#64748b] mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-semibold text-[#94a3b8]">Belum Ada Rider Live</p>
+                  <p className="text-[10px] text-[#64748b] mt-0.5 max-w-[200px] mx-auto">
+                    Klik tombol ON THE WAY di atas untuk membagikan posisi Anda di peta jalanan Makassar!
+                  </p>
+                </div>
+              ) : (
+                riders.map((r) => {
+                  const displayName = r.is_anonymous ? 'Rider' : (r.display_name || 'Rider');
+                  const isMe = user?.id === r.user_id;
 
-                return (
-                  <div
-                    key={r.id}
-                    onClick={() => {
-                      setSelectedRider(r);
-                      if (mapInstance) {
-                        mapInstance.flyTo({
-                          center: [r.longitude, r.latitude],
-                          zoom: 16,
-                          essential: true,
-                        });
-                      }
-                    }}
-                    className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
-                      selectedRider?.id === r.id
-                        ? 'bg-[#141f36] border-[#00f076]/40'
-                        : 'bg-[#0f172a]/60 border-[#1e2d4d] hover:bg-[#141f36]/70'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Avatar name={displayName} size="sm" />
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white truncate flex items-center gap-1">
-                          <span>{displayName}</span>
-                          {isMe && (
-                            <span className="text-[9px] px-1 rounded bg-[#00f076]/20 text-[#00f076] font-mono">
-                              YOU
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-[#64748b] font-mono">
-                          {r.speed_mps ? (r.speed_mps * 3.6).toFixed(1) + ' km/h' : '0 km/h'}
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => {
+                        setSelectedRider(r);
+                        if (mapInstance) {
+                          mapInstance.flyTo({
+                            center: [r.longitude, r.latitude],
+                            zoom: 16,
+                            essential: true,
+                          });
+                        }
+                      }}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
+                        selectedRider?.id === r.id
+                          ? 'bg-[#141f36] border-[#00f076]/40'
+                          : 'bg-[#0f172a]/60 border-[#1e2d4d] hover:bg-[#141f36]/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar name={displayName} size="sm" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate flex items-center gap-1">
+                            <span>{displayName}</span>
+                            {isMe && (
+                              <span className="text-[9px] px-1 rounded bg-[#00f076]/20 text-[#00f076] font-mono">
+                                YOU
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-[#64748b] font-mono">
+                            {r.speed_mps ? (r.speed_mps * 3.6).toFixed(1) + ' km/h' : '0 km/h'}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="shrink-0">
-                      <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
+                      <div className="shrink-0">
+                        <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </aside>
@@ -585,30 +595,40 @@ export default function LiveMapPage() {
             <div className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider mb-2">
               Daftar Rider Aktif ({riders.length})
             </div>
-            {riders.map((r) => (
-              <div
-                key={r.id}
-                onClick={() => {
-                  setSelectedRider(r);
-                  if (mapInstance) {
-                    mapInstance.flyTo({
-                      center: [r.longitude, r.latitude],
-                      zoom: 16,
-                      essential: true,
-                    });
-                  }
-                }}
-                className="flex items-center justify-between p-2.5 rounded-xl bg-[#141f36]/70 border border-[#1e2d4d]"
-              >
-                <div className="flex items-center gap-2">
-                  <Avatar name={r.display_name || 'Rider'} size="xs" />
-                  <span className="text-xs font-bold text-white">
-                    {r.is_anonymous ? 'Rider' : (r.display_name || 'Rider')}
-                  </span>
-                </div>
-                <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
+            {riders.length === 0 ? (
+              <div className="py-6 px-3 text-center rounded-xl bg-[#0f172a]/40 border border-dashed border-[#1e2d4d]">
+                <Bike className="w-5 h-5 text-[#64748b] mx-auto mb-1.5 opacity-50" />
+                <p className="text-xs font-semibold text-[#94a3b8]">Belum Ada Rider Live</p>
+                <p className="text-[10px] text-[#64748b] mt-0.5">
+                  Nyalakan GPS dengan tombol ON THE WAY di atas
+                </p>
               </div>
-            ))}
+            ) : (
+              riders.map((r) => (
+                <div
+                  key={r.id}
+                  onClick={() => {
+                    setSelectedRider(r);
+                    if (mapInstance) {
+                      mapInstance.flyTo({
+                        center: [r.longitude, r.latitude],
+                        zoom: 16,
+                        essential: true,
+                      });
+                    }
+                  }}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-[#141f36]/70 border border-[#1e2d4d]"
+                >
+                  <div className="flex items-center gap-2">
+                    <Avatar name={r.display_name || 'Rider'} size="xs" />
+                    <span className="text-xs font-bold text-white">
+                      {r.is_anonymous ? 'Rider' : (r.display_name || 'Rider')}
+                    </span>
+                  </div>
+                  <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
+                </div>
+              ))
+            )}
           </div>
         </BottomSheet>
       </div>

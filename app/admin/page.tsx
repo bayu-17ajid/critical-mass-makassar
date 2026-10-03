@@ -10,6 +10,7 @@ import {
   LiveLocation,
   RundownItem,
   EventLocation,
+  EventAttendee,
 } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -43,6 +44,7 @@ export default function AdminPage() {
   const [rundowns, setRundowns] = useState<RundownItem[]>([]);
   const [tikums, setTikums] = useState<MeetingPoint[]>([]);
   const [liveRiders, setLiveRiders] = useState<LiveLocation[]>([]);
+  const [attendees, setAttendees] = useState<EventAttendee[]>([]);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'RUNDOWN' | 'LOCATIONS' | 'TIKUM' | 'RIDERS'>('OVERVIEW');
   const [savingStatus, setSavingStatus] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState('');
@@ -82,17 +84,19 @@ export default function AdminPage() {
     const ev = await eventService.getLatestEvent();
     setEvent(ev);
 
-    const [locs, rds, tks, lvs] = await Promise.all([
+    const [locs, rds, tks, lvs, atts] = await Promise.all([
       eventService.getEventLocations(ev.id),
       eventService.getEventRundown(ev.id),
       eventService.getTikums(ev.id),
       eventService.getActiveLiveLocations(ev.id),
+      eventService.getEventAttendees(ev.id),
     ]);
 
     setLocations(locs);
     setRundowns(rds);
     setTikums(tks);
     setLiveRiders(lvs);
+    setAttendees(atts);
 
     const start = locs.find((l) => l.type === 'MAIN_START') || locs[0];
     if (start) {
@@ -120,11 +124,12 @@ export default function AdminPage() {
       if (!isMounted) return;
       setEvent(ev);
 
-      const [locs, rds, tks, lvs] = await Promise.all([
+      const [locs, rds, tks, lvs, atts] = await Promise.all([
         eventService.getEventLocations(ev.id),
         eventService.getEventRundown(ev.id),
         eventService.getTikums(ev.id),
         eventService.getActiveLiveLocations(ev.id),
+        eventService.getEventAttendees(ev.id),
       ]);
 
       if (!isMounted) return;
@@ -132,6 +137,7 @@ export default function AdminPage() {
       setRundowns(rds);
       setTikums(tks);
       setLiveRiders(lvs);
+      setAttendees(atts);
 
       const start = locs.find((l) => l.type === 'MAIN_START') || locs[0];
       if (start) {
@@ -493,7 +499,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard
               label="Peserta Terdaftar"
-              value="187"
+              value={attendees.length}
               variant="green"
               icon={<Users className="w-4 h-4" />}
             />
@@ -908,28 +914,40 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1e2d4d]">
-                {liveRiders.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#141f36]/40">
-                    <td className="py-2.5 px-3 font-bold text-white">
-                      {r.is_anonymous ? 'Rider (Anonim)' : r.display_name}
-                    </td>
-                    <td className="py-2.5 px-3">
-                      <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#00f076]">
-                      {r.speed_mps ? (r.speed_mps * 3.6).toFixed(1) + ' km/h' : '0 km/h'}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#94a3b8]">
-                      ±{r.accuracy_meters ? Math.round(r.accuracy_meters) : 5}m
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#64748b]">
-                      {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#00f076]">
-                      Aktif
+                {liveRiders.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-[#94a3b8]">
+                      <Radio className="w-6 h-6 mx-auto mb-2 text-[#64748b] opacity-50" />
+                      <p className="font-semibold text-xs text-white">Belum Ada Rider Aktif</p>
+                      <p className="text-[11px] text-[#64748b] mt-0.5">
+                        Status GPS realtime akan muncul di sini otomatis saat pesepeda mulai menyalakan tracking di rute Makassar
+                      </p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  liveRiders.map((r) => (
+                    <tr key={r.id} className="hover:bg-[#141f36]/40">
+                      <td className="py-2.5 px-3 font-bold text-white">
+                        {r.is_anonymous ? 'Rider (Anonim)' : r.display_name}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <RiderStatusBadge status={r.status || 'ON_THE_WAY'} size="sm" />
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#00f076]">
+                        {r.speed_mps ? (r.speed_mps * 3.6).toFixed(1) + ' km/h' : '0 km/h'}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#94a3b8]">
+                        ±{r.accuracy_meters ? Math.round(r.accuracy_meters) : 5}m
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#64748b]">
+                        {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#00f076]">
+                        Aktif
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

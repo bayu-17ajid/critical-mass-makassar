@@ -331,45 +331,69 @@ export default function EventPage() {
         </div>
 
         {/* Attendees Grid / List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filteredAttendees.map((att) => {
-            const isMe = user?.id === att.user_id;
-            const displayName = att.is_anonymous
-              ? isMe
-                ? 'Saya (Anonim)'
-                : 'Rider'
-              : att.profile?.display_name || 'Rider Makassar';
-            const username = att.is_anonymous ? 'anonymous' : att.profile?.username || 'goweser';
+        {filteredAttendees.length === 0 ? (
+          <div className="py-12 px-4 text-center rounded-2xl bg-[#0f172a]/50 border border-dashed border-[#1e2d4d]">
+            <div className="w-12 h-12 rounded-full bg-[#141f36] border border-[#1e2d4d] flex items-center justify-center text-[#94a3b8] mx-auto mb-3">
+              <Users className="w-6 h-6" />
+            </div>
+            <h4 className="text-sm font-bold text-white mb-1">
+              {activeTab === 'ALL'
+                ? 'Belum Ada Peserta yang Terdaftar'
+                : 'Belum Ada Peserta di Kategori Ini'}
+            </h4>
+            <p className="text-xs text-[#94a3b8] max-w-sm mx-auto mb-4">
+              Jadilah pesepeda pertama yang mengonfirmasi kehadiran untuk meramaikan Critical Mass Makassar!
+            </p>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleAttendToggle}
+              leftIcon={<CheckCircle className="w-4 h-4" />}
+            >
+              Konfirmasi Kehadiran Saya
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredAttendees.map((att) => {
+              const isMe = user?.id === att.user_id;
+              const displayName = att.is_anonymous
+                ? isMe
+                  ? 'Saya (Anonim)'
+                  : 'Rider'
+                : att.profile?.display_name || 'Rider Makassar';
+              const username = att.is_anonymous ? 'anonymous' : att.profile?.username || 'goweser';
 
-            return (
-              <div
-                key={att.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-[#0f172a]/70 border border-[#1e2d4d] hover:border-[#00f076]/30 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar name={displayName} size="sm" />
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-white truncate flex items-center gap-1.5">
-                      <span>{displayName}</span>
-                      {isMe && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#00f076]/20 text-[#00f076] font-mono">
-                          YOU
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[#64748b] font-mono truncate">
-                      @{username}
+              return (
+                <div
+                  key={att.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#0f172a]/70 border border-[#1e2d4d] hover:border-[#00f076]/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar name={displayName} size="sm" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-white truncate flex items-center gap-1.5">
+                        <span>{displayName}</span>
+                        {isMe && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#00f076]/20 text-[#00f076] font-mono">
+                            YOU
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[#64748b] font-mono truncate">
+                        @{username}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="shrink-0">
-                  <RiderStatusBadge status={att.status} size="sm" />
+                  <div className="shrink-0">
+                    <RiderStatusBadge status={att.status} size="sm" />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
