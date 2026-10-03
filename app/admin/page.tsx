@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminPage() {
-  const { user, isAdmin, loginDirect } = useAuth();
+  const { user, isAdmin, isLoading, loginDirect } = useAuth();
 
   const [event, setEvent] = useState<CriticalMassEvent | null>(null);
   const [locations, setLocations] = useState<EventLocation[]>([]);
@@ -198,6 +198,15 @@ export default function AdminPage() {
       setLoggingIn(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+        <p className="text-xs text-[#94a3b8] font-mono">Memuat akses admin...</p>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

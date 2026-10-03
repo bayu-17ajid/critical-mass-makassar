@@ -14,6 +14,7 @@ export interface Profile {
   display_name: string;
   avatar_url: string | null;
   role?: 'user' | 'admin';
+  bike_type?: string | null;
   is_anonymous?: boolean;
   created_at: string;
   updated_at: string;

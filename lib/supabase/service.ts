@@ -8,6 +8,7 @@ import {
   EventAttendee,
   LiveLocation,
   AttendeeStatus,
+  Profile,
 } from '@/types';
 import {
   MOCK_EVENT,
@@ -137,7 +138,21 @@ export const eventService = {
         .order('display_order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        return data as RundownItem[];
+        interface DbRundownRow {
+          id: string;
+          time: string;
+          title: string;
+          description?: string | null;
+          display_order?: number;
+          order?: number;
+        }
+        return (data as unknown as DbRundownRow[]).map((item) => ({
+          id: item.id,
+          time: item.time,
+          title: item.title,
+          description: item.description || undefined,
+          order: item.display_order ?? item.order ?? 1,
+        }));
       }
     }
     return getLocalState<RundownItem[]>(STORAGE_KEYS.RUNDOWN, MOCK_RUNDOWN);
@@ -159,8 +174,8 @@ export const eventService = {
         event_id: item.event_id,
         time: item.time,
         title: item.title,
-        description: item.description,
-        display_order: item.order,
+        description: item.description || null,
+        display_order: item.order ?? 1,
       };
       if (item.id) {
         const { data, error } = await supabase
@@ -169,14 +184,30 @@ export const eventService = {
           .eq('id', item.id)
           .select()
           .single();
-        if (!error && data) return data as RundownItem;
+        if (!error && data) {
+          return {
+            id: data.id,
+            time: data.time,
+            title: data.title,
+            description: data.description || undefined,
+            order: data.display_order ?? data.order ?? (item.order || 1),
+          };
+        }
       } else {
         const { data, error } = await supabase
           .from('event_rundowns')
           .insert(payload)
           .select()
           .single();
-        if (!error && data) return data as RundownItem;
+        if (!error && data) {
+          return {
+            id: data.id,
+            time: data.time,
+            title: data.title,
+            description: data.description || undefined,
+            order: data.display_order ?? data.order ?? (item.order || 1),
+          };
+        }
       }
     }
 
@@ -252,14 +283,24 @@ export const eventService = {
 
       if (!error && data) {
         if (data.length === 0) return [];
-        const userIds = data.map((a: any) => a.user_id);
+        interface DbAttendeeRow {
+          id: string;
+          event_id: string;
+          user_id: string;
+          status: AttendeeStatus;
+          is_anonymous: boolean;
+          created_at: string;
+          updated_at: string;
+        }
+        const rows = data as unknown as DbAttendeeRow[];
+        const userIds = rows.map((a) => a.user_id);
         const { data: profs } = await supabase
           .from('profiles')
           .select('*')
           .in('id', userIds);
 
-        const profMap = new Map((profs || []).map((p: any) => [p.id, p]));
-        return data.map((item: any) => ({
+        const profMap = new Map((profs as Profile[] || []).map((p) => [p.id, p] as const));
+        return rows.map((item) => ({
           ...item,
           profile: profMap.get(item.user_id) || {
             id: item.user_id,
@@ -269,7 +310,7 @@ export const eventService = {
             created_at: item.created_at,
             updated_at: item.updated_at,
           },
-        })) as EventAttendee[];
+        }));
       }
 
       if (isSupabaseConfigured) {
@@ -300,7 +341,23 @@ export const eventService = {
         .single();
 
       if (!error && data) {
-        return data as EventAttendee;
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        return {
+          ...data,
+          profile: prof || {
+            id: userId,
+            username: isAnonymous ? 'anonymous' : 'rider',
+            display_name: isAnonymous ? 'Rider' : 'Saya (Rider)',
+            avatar_url: null,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+          },
+        } as EventAttendee;
       }
     }
 
@@ -428,7 +485,19 @@ export const eventService = {
         .single();
 
       if (!error && data) {
-        return data as MeetingPoint;
+        try {
+          await supabase.from('meeting_point_members').insert({
+            meeting_point_id: data.id,
+            user_id: tikum.creator_id,
+          });
+        } catch {
+          // ignore duplicate
+        }
+        return {
+          ...data,
+          member_count: 1,
+          is_joined: true,
+        } as MeetingPoint;
       }
     }
 
@@ -569,6 +638,9 @@ export const eventService = {
           accuracy_meters: location.accuracy_meters,
           speed_mps: location.speed_mps,
           heading: location.heading,
+          status: location.status || 'ON_THE_WAY',
+          display_name: location.display_name || 'Rider',
+          is_anonymous: Boolean(location.is_anonymous),
           recorded_at: recordedAt,
         },
         { onConflict: 'event_id,user_id' }
