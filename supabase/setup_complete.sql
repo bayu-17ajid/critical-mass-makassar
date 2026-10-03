@@ -30,6 +30,7 @@ drop policy if exists "Users can update their own profile" on public.profiles;
 create policy "Allow all profiles read" on public.profiles for select using (true);
 create policy "Allow all profiles insert" on public.profiles for insert with check (true);
 create policy "Allow all profiles update" on public.profiles for update using (true);
+create policy "Allow all profiles delete" on public.profiles for delete using (true);
 
 -- 3. TABEL EVENTS
 create table if not exists public.events (
